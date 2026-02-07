@@ -1,35 +1,37 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useState } from 'react';
+import { IntroSequence } from './components/screens/IntroSequence';
+import { InitializeSignal } from './components/screens/InitializeSignal';
+import { DecoderInterface } from './components/screens/DecoderInterface';
+import { SystemStatus } from './components/screens/SystemStatus';
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [appMode, setAppMode] = useState<'intro' | 'initialize' | 'decoder' | 'status'>('intro');
+
+  if (appMode === 'intro') {
+    return <IntroSequence onNavigate={(mode) => setAppMode(mode as any)} />;
+  }
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
+    <div className="w-screen h-screen bg-black overflow-hidden relative">
+      {/* Dynamic Background Noise (Persists across pages) */}
+      <div className="fixed inset-0 pointer-events-none z-[100] bg-noise opacity-[0.03]"></div>
+      <div className="fixed inset-0 pointer-events-none z-[101] scanlines opacity-20"></div>
+
+      {appMode === 'initialize' && <InitializeSignal />}
+      {appMode === 'decoder' && <DecoderInterface />}
+      {appMode === 'status' && <SystemStatus />}
+
+      {/* Global Navigation Override (Hidden for ritual) */}
+      <div className="fixed bottom-4 right-4 z-[200] opacity-0 hover:opacity-10 transition-opacity">
+        <button
+          onClick={() => setAppMode('intro')}
+          className="text-[10px] text-red-900 font-mono tracking-widest"
+        >
+          SYSTEM_REBOOT
         </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
       </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    </div>
+  );
 }
 
-export default App
+export default App;
