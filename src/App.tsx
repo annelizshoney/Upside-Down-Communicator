@@ -1,15 +1,17 @@
 import { useState } from 'react';
 import { IntroSequence } from './components/screens/IntroSequence';
-import { InitializeSignal } from './components/screens/InitializeSignal';
-import { DecoderInterface } from './components/screens/DecoderInterface';
-import { SystemStatus } from './components/screens/SystemStatus';
+import { CoreChallenge } from './components/screens/CoreChallenge';
 
 function App() {
-  const [appMode, setAppMode] = useState<'intro' | 'initialize' | 'decoder' | 'status'>('intro');
+  const [appMode, setAppMode] = useState<'intro' | 'challenge'>('intro');
 
-  if (appMode === 'intro') {
-    return <IntroSequence onNavigate={(mode) => setAppMode(mode as any)} />;
-  }
+  const handleNavigate = () => {
+    setAppMode('challenge');
+  };
+
+  const handleReset = () => {
+    setAppMode('intro');
+  };
 
   return (
     <div className="w-screen h-screen bg-black overflow-hidden relative">
@@ -17,18 +19,14 @@ function App() {
       <div className="fixed inset-0 pointer-events-none z-[100] bg-noise opacity-[0.03]"></div>
       <div className="fixed inset-0 pointer-events-none z-[101] scanlines opacity-20"></div>
 
-      {appMode === 'initialize' && <InitializeSignal />}
-      {appMode === 'decoder' && <DecoderInterface />}
-      {appMode === 'status' && <SystemStatus />}
+      {appMode === 'intro' && <IntroSequence onNavigate={handleNavigate} />}
+      {appMode === 'challenge' && <CoreChallenge onReset={handleReset} />}
 
-      {/* Global Navigation Override (Hidden for ritual) */}
-      <div className="fixed bottom-4 right-4 z-[200] opacity-0 hover:opacity-10 transition-opacity">
-        <button
-          onClick={() => setAppMode('intro')}
-          className="text-[10px] text-red-900 font-mono tracking-widest"
-        >
-          SYSTEM_REBOOT
-        </button>
+      {/* Global Metadata Tooltip */}
+      <div className="fixed bottom-4 left-4 z-[200] opacity-0 hover:opacity-10 transition-opacity">
+        <span className="text-[8px] text-term-green font-mono tracking-widest">
+          HAWKINS_TERMINAL_V8.3_LIVE
+        </span>
       </div>
     </div>
   );

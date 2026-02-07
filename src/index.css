@@ -1,13 +1,17 @@
 @import "tailwindcss";
 
 :root {
-  --color-phosphor-green: #33ff00;
-  --color-phosphor-amber: #ffb000;
-  --color-alert-red: #ff0000;
-  /* Classic Alert */
+  /* 1983 Terminal Palette */
+  --color-term-green: #00ff41;
+  --color-term-amber: #ffb100;
+  --color-term-red: #ff3131;
+  --color-term-bg: #0c0c0c;
+
+  --color-phosphor-green: var(--color-term-green);
+  --color-phosphor-amber: var(--color-term-amber);
+  --color-alert-red: var(--color-term-red);
   --color-blood-red: #8a0000;
-  /* Deep Stranger Things Red */
-  --color-void-black: #000000;
+  --color-void-black: var(--color-term-bg);
   --color-crt-overlay: rgba(18, 16, 16, 0.1);
 
   --font-retro: 'VT323', monospace;
@@ -20,15 +24,13 @@
 body {
   margin: 0;
   padding: 0;
-  background-color: var(--color-void-black);
-  color: var(--color-phosphor-green);
+  background-color: var(--color-term-bg);
+  color: var(--color-term-green);
   font-family: var(--font-retro);
   overflow: hidden;
-  /* Prevent scrollbars in full terminal view */
   width: 100vw;
   height: 100vh;
   -webkit-font-smoothing: none;
-  /* Crucial for pixel fonts */
 }
 
 /* CRT Scanline Effect */
@@ -178,116 +180,33 @@ body {
 
 /* Utility classes for layout */
 .terminal-border {
-  border: 2px solid var(--color-phosphor-green);
+  border: 4px solid var(--color-phosphor-green);
   box-shadow: 0 0 10px var(--color-phosphor-green), inset 0 0 10px var(--color-phosphor-green);
   background-color: rgba(0, 20, 0, 0.1);
 }
 
-.terminal-border-red {
-  border: 2px solid var(--color-alert-red);
-  box-shadow: 0 0 10px var(--color-alert-red), inset 0 0 10px var(--color-alert-red);
-  background-color: rgba(20, 0, 0, 0.1);
+.terminal-text {
+  font-family: var(--font-retro);
+  text-shadow: 0 0 5px currentColor;
 }
 
-/* Glitch Effect Keyframes */
-@keyframes glitch-anim-1 {
-  0% {
-    clip-path: inset(20% 0 80% 0);
-    transform: translate(-2px, 1px);
-  }
-
-  20% {
-    clip-path: inset(60% 0 10% 0);
-    transform: translate(2px, -1px);
-  }
-
-  40% {
-    clip-path: inset(40% 0 50% 0);
-    transform: translate(-2px, 2px);
-  }
-
-  60% {
-    clip-path: inset(80% 0 5% 0);
-    transform: translate(2px, -2px);
-  }
-
-  80% {
-    clip-path: inset(10% 0 60% 0);
-    transform: translate(-1px, 1px);
-  }
-
-  100% {
-    clip-path: inset(30% 0 20% 0);
-    transform: translate(1px, -1px);
-  }
-}
-
-.glitch-text {
+.chunky-button {
+  background: transparent;
+  border: 4px solid currentColor;
+  padding: 1rem 2rem;
+  font-family: var(--font-retro);
+  font-size: 2rem;
+  cursor: pointer;
   position: relative;
-  display: inline-block;
+  transition: all 0.1s;
+  color: var(--color-term-green);
+  text-transform: uppercase;
 }
 
-.glitch-text::before,
-.glitch-text::after {
-  content: attr(data-text);
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: var(--color-void-black);
-}
-
-.glitch-text::before {
-  left: 2px;
-  text-shadow: -1px 0 var(--color-alert-red);
-  clip-path: inset(0 0 0 0);
-  animation: glitch-anim-1 2s infinite linear alternate-reverse;
-}
-
-.glitch-text::after {
-  left: -2px;
-  text-shadow: -1px 0 var(--color-phosphor-green);
-  clip-path: inset(0 0 0 0);
-  animation: glitch-anim-1 3s infinite linear alternate-reverse;
-}
-
-
-/* Radar Sweep Animation */
-@keyframes radar-sweep {
-  0% {
-    transform: rotate(0deg);
-  }
-
-  100% {
-    transform: rotate(360deg);
-  }
-}
-
-.radar-grid {
-  background-size: 40px 40px;
-  background-image:
-    linear-gradient(to right, rgba(0, 50, 0, 0.1) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(0, 50, 0, 0.1) 1px, transparent 1px);
-}
-
-.radar-sweep {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 150vmax;
-  height: 150vmax;
-  background: conic-gradient(from 0deg,
-      transparent 0deg,
-      transparent 280deg,
-      rgba(51, 255, 0, 0.1) 360deg);
-  transform-origin: top left;
-  animation: radar-sweep 4s infinite linear;
-  pointer-events: none;
-  border-radius: 50%;
-  margin-top: -75vmax;
-  margin-left: -75vmax;
-  opacity: 0.3;
+.chunky-button:hover {
+  background: var(--color-term-green);
+  color: var(--color-term-bg);
+  box-shadow: 0 0 20px var(--color-term-green);
 }
 
 /* Static Noise Background */
@@ -295,124 +214,9 @@ body {
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.5'/%3E%3C/svg%3E");
 }
 
-/* Text Jitter */
-@keyframes text-jitter {
-  0% {
-    transform: translate(0, 0);
-  }
-
-  5% {
-    transform: translate(1px, 0);
-  }
-
-  10% {
-    transform: translate(-1px, 0);
-  }
-
-  15% {
-    transform: translate(0, 0);
-  }
-
-  100% {
-    transform: translate(0, 0);
-  }
-}
-
-.text-jitter {
-  animation: text-jitter 4s infinite;
-}
-
-
-/* Film Grain */
-.bg-film-grain {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  z-index: 45;
-  opacity: 0.15;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='1'/%3E%3C/svg%3E");
-}
-
-/* Red Glow Text */
-.text-glow-blood {
-  color: #ff0000;
-  text-shadow: 0 0 5px var(--color-blood-red), 0 0 10px var(--color-blood-red), 0 0 20px var(--color-alert-red);
-}
-
-/* Heartbeat Pulse */
-@keyframes heartbeat {
-  0% {
-    transform: scale(1);
-    opacity: 0.8;
-  }
-
-  5% {
-    transform: scale(1.02);
-    opacity: 1;
-  }
-
-  10% {
-    transform: scale(1);
-    opacity: 0.8;
-  }
-
-  15% {
-    transform: scale(1.02);
-    opacity: 1;
-  }
-
-  50% {
-    transform: scale(1);
-    opacity: 0.8;
-  }
-
-  100% {
-    transform: scale(1);
-    opacity: 0.8;
-  }
-}
-
-.animate-heartbeat {
-  animation: heartbeat 2s infinite;
-}
-
-
 /* Aggressive Animations */
 
-@keyframes slam-in {
-  0% {
-    transform: scale(3);
-    opacity: 0;
-    filter: blur(10px);
-  }
-
-  40% {
-    transform: scale(0.95);
-    opacity: 1;
-    filter: blur(0);
-  }
-
-  60% {
-    transform: scale(1.02);
-  }
-
-  80% {
-    transform: scale(0.98);
-  }
-
-  100% {
-    transform: scale(1);
-  }
-}
-
-.animate-slam {
-  animation: slam-in 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
-}
-
-@keyframes violent-shake {
+@keyframes physical-shake {
   0% {
     transform: translate(0, 0);
   }
@@ -446,330 +250,97 @@ body {
   }
 }
 
-.animate-violent-shake {
-  animation: violent-shake 0.4s ease-in-out;
+.animate-shake {
+  animation: physical-shake 0.4s ease-in-out infinite;
 }
 
-@keyframes glitch-shred {
+@keyframes scanline-scroll {
   0% {
-    clip-path: inset(0 0 0 0);
-  }
-
-  10% {
-    clip-path: inset(20% -5px 60% 0);
-    transform: translateX(-5px);
-  }
-
-  20% {
-    clip-path: inset(60% 0 10% -5px);
-    transform: translateX(5px);
-  }
-
-  30% {
-    clip-path: inset(10% -5px 80% 0);
-    transform: translateX(-5px);
-  }
-
-  40% {
-    clip-path: inset(0 0 0 0);
-    transform: translateX(0);
-  }
-}
-
-.animate-shred {
-  animation: glitch-shred 3s infinite linear alternate-reverse;
-}
-
-.text-shred:hover {
-  animation: glitch-shred 0.2s infinite linear;
-}
-
-/* Red Smoke / Fog */
-@keyframes fog-flow {
-  0% {
-    background-position: 0 0;
+    transform: translateY(0);
   }
 
   100% {
-    background-position: 100% 0;
+    transform: translateY(100vh);
   }
 }
 
-.bg-fog {
-  background: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='fog'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.01' numOctaves='5'/%3E%3CfeColorMatrix type='matrix' values='1 0 0 0 1  0 0 0 0 0  0 0 0 0 0  0 0 0 0.4 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23fog)' opacity='0.3'/%3E%3C/svg%3E");
-  animation: fog-flow 60s linear infinite;
-  background-size: 200% 100%;
-}
-
-
-/* Ritualistic / Slow-Burn Animations */
-
-@keyframes scanline-sweep-down {
-  0% {
-    top: -10%;
-    opacity: 0;
-  }
-
-  10% {
-    opacity: 1;
-  }
-
-  90% {
-    opacity: 1;
-  }
-
-  100% {
-    top: 110%;
-    opacity: 0;
-  }
-}
-
-.scanline-sweep {
-  position: absolute;
+.crt-scanline {
+  position: fixed;
+  top: 0;
   left: 0;
   width: 100%;
-  height: 2px;
-  background: #ff0000;
-  box-shadow: 0 0 15px #ff0000;
-  animation: scanline-sweep-down 2s linear forwards;
-  z-index: 50;
+  height: 4px;
+  background: rgba(0, 255, 65, 0.05);
   pointer-events: none;
+  z-index: 1000;
+  animation: scanline-scroll 3s linear infinite;
 }
 
-@keyframes diag-slide-in {
+@keyframes bar-fluctuate {
   0% {
-    transform: translateX(-50px);
-    opacity: 0;
-  }
-
-  80% {
-    transform: translateX(5px);
-  }
-
-  90% {
-    transform: translateX(-2px);
-    opacity: 1;
-  }
-
-  100% {
-    transform: translateX(0);
-    opacity: 1;
-  }
-}
-
-.animate-diag {
-  animation: diag-slide-in 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
-}
-
-@keyframes gate-ripple {
-  0% {
-    transform: scale(1) rotate(0deg);
-    filter: blur(5px);
-    opacity: 0.3;
+    height: 40%;
   }
 
   50% {
-    transform: scale(1.1) rotate(5deg);
-    filter: blur(8px);
-    opacity: 0.6;
+    height: 55%;
   }
 
   100% {
-    transform: scale(1) rotate(0deg);
-    filter: blur(5px);
-    opacity: 0.3;
+    height: 40%;
   }
 }
 
-.gate-rift {
-  mask-image: radial-gradient(circle, black, transparent 70%);
-  animation: gate-ripple 4s infinite ease-in-out;
+.animate-bar {
+  animation: bar-fluctuate 2s infinite ease-in-out;
 }
 
-@keyframes expand-rift-full {
+@keyframes terminal-flicker {
   0% {
-    transform: scale(0.1);
-    opacity: 0;
+    opacity: 0.97;
+  }
+
+  5% {
+    opacity: 0.95;
+  }
+
+  10% {
+    opacity: 0.9;
+  }
+
+  15% {
+    opacity: 0.95;
   }
 
   20% {
-    opacity: 1;
+    opacity: 0.98;
   }
 
   100% {
-    transform: scale(4.5);
+    opacity: 1;
+  }
+}
+
+.animate-flicker {
+  animation: terminal-flicker 0.15s infinite;
+}
+
+@keyframes pulse-ring {
+  0% {
+    transform: scale(3) rotate(0deg);
+    opacity: 0;
+  }
+
+  50% {
+    transform: scale(1) rotate(180deg);
+    opacity: 0.1;
+  }
+
+  100% {
+    transform: scale(3) rotate(360deg);
     opacity: 0;
   }
 }
 
-.animate-expand-gate {
-  animation: expand-rift-full 4s ease-in forwards;
-}
-
-@keyframes blood-drain-wipe {
-  0% {
-    transform: translateY(-100%);
-  }
-
-  100% {
-    transform: translateY(100%);
-  }
-}
-
-.blood-drain-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 100;
-  background: linear-gradient(to bottom, transparent, rgba(138, 0, 0, 1), black);
-  pointer-events: none;
-}
-
-.blood-drain-active {
-  animation: blood-drain-wipe 2.5s cubic-bezier(0.4, 0, 1, 1) forwards;
-}
-
-@keyframes draw-border-rect {
-  0% {
-    clip-path: inset(0 100% 100% 0);
-  }
-
-  25% {
-    clip-path: inset(0 0 100% 0);
-  }
-
-  50% {
-    clip-path: inset(0 0 0 0);
-  }
-
-  75% {
-    clip-path: inset(100% 0 0 0);
-  }
-
-  100% {
-    clip-path: inset(100% 100% 0 0);
-  }
-}
-
-.border-draw-active {
-  position: relative;
-}
-
-.border-draw-active::before {
-  content: "";
-  position: absolute;
-  inset: -2px;
-  border: 2px solid var(--color-blood-red);
-  pointer-events: none;
-}
-
-.animate-border-draw::before {
-  animation: draw-border-rect 1s linear forwards;
-}
-
-@keyframes slow-heavy-breathe {
-  0% {
-    opacity: 0.7;
-    transform: scale(1);
-    filter: brightness(0.8);
-  }
-
-  50% {
-    opacity: 1;
-    transform: scale(1.02);
-    filter: brightness(1.2) drop-shadow(0 0 15px var(--color-blood-red));
-  }
-
-  100% {
-    opacity: 0.7;
-    transform: scale(1);
-    filter: brightness(0.8);
-  }
-}
-
-.animate-breathe-heavy {
-  animation: slow-heavy-breathe 4s infinite ease-in-out;
-}
-
-
-/* Refined Ritualistic Animations */
-
-@keyframes text-warp {
-  0% {
-    transform: scale(1);
-    filter: blur(0px);
-    letter-spacing: normal;
-  }
-
-  50% {
-    transform: scale(0.98);
-    filter: blur(1px);
-    letter-spacing: -1px;
-  }
-
-  100% {
-    transform: scale(1);
-    filter: blur(0px);
-    letter-spacing: normal;
-  }
-}
-
-.animate-text-warp {
-  animation: text-warp 6s infinite ease-in-out;
-}
-
-@keyframes vein-grow {
-  0% {
-    stroke-dashoffset: 1000;
-    opacity: 0;
-  }
-
-  100% {
-    stroke-dashoffset: 0;
-    opacity: 0.6;
-  }
-}
-
-.vein-crack {
-  stroke: #8a0000;
-  stroke-width: 0.5;
-  stroke-dasharray: 1000;
-  stroke-dashoffset: 1000;
-  fill: none;
-  filter: drop-shadow(0 0 5px #8a0000);
-}
-
-.animate-vein {
-  animation: vein-grow 8s ease-out forwards;
-}
-
-@keyframes panel-slide-in {
-  0% {
-    transform: translateY(20px);
-    opacity: 0;
-  }
-
-  100% {
-    transform: translateY(0);
-    opacity: 1;
-  }
-}
-
-.animate-panel {
-  animation: panel-slide-in 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
-}
-
-@keyframes blink-red {
-
-  0%,
-  100% {
-    opacity: 1;
-  }
-
-  50% {
-    opacity: 0.3;
-  }
-}
-
-.animate-blink-red {
-  animation: blink-red 0.5s infinite;
+.animate-pulse-ring {
+  animation: pulse-ring 4s infinite linear;
 }

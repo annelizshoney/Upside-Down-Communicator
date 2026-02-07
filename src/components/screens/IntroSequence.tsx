@@ -1,156 +1,203 @@
 import { type FC, useState, useEffect, useRef } from 'react';
 
 interface IntroSequenceProps {
-    onNavigate: (target: 'initialize' | 'decoder' | 'status') => void;
+    onNavigate: () => void;
 }
 
 export const IntroSequence: FC<IntroSequenceProps> = ({ onNavigate }) => {
-    const [scene, setScene] = useState<'scene1' | 'scene2' | 'transition'>('scene1');
-    const [scene1Step, setScene1Step] = useState(0);
-    const [scene2Step, setScene2Step] = useState(0);
-    const [transitionTarget, setTransitionTarget] = useState<'initialize' | 'decoder' | 'status' | null>(null);
-    const [transitionStep, setTransitionStep] = useState(0);
+    const [scene, setScene] = useState<'loading' | 'home' | 'transition'>('loading');
+    const [loadStep, setLoadStep] = useState(0);
+    const [statusText, setStatusText] = useState<string[]>([]);
+    const [isReady, setIsReady] = useState(false);
 
     const fogRef = useRef<HTMLDivElement>(null);
+    const maxBlocks = 20;
 
-    // Scene 1 Logic: The Gate Opening
+    // Scene 1: Loading Logic
     useEffect(() => {
-        if (scene !== 'scene1') return;
-        const steps = [
-            { d: 1000, fn: () => setScene1Step(1) },
-            { d: 3000, fn: () => setScene1Step(2) },
-            { d: 5000, fn: () => setScene1Step(3) },
-            { d: 8000, fn: () => setScene1Step(4) },
-            { d: 10000, fn: () => setScene1Step(5) },
-            { d: 13000, fn: () => setScene1Step(6) },
-            { d: 15000, fn: () => setScene('scene2') }
+        if (scene !== 'loading') return;
+
+        const loadInterval = setInterval(() => {
+            setLoadStep(prev => {
+                if (prev >= maxBlocks) {
+                    clearInterval(loadInterval);
+                    return maxBlocks;
+                }
+                // Occasional dropout simulation
+                if (Math.random() < 0.1) return prev;
+                return prev + 1;
+            });
+        }, 150);
+
+        const textSteps = [
+            { d: 1000, t: "CHECKING SIGNAL PATH" },
+            { d: 2500, t: "REALITY ANCHOR UNSTABLE" },
+            { d: 4500, t: "INTERFERENCE DETECTED" },
+            { d: 6500, t: "DECODER READY", finale: true }
         ];
-        const timeouts = steps.map(s => setTimeout(s.fn, s.d));
-        return () => timeouts.forEach(clearTimeout);
-    }, [scene]);
 
-    // Scene 2 Logic: Home Page assembly
-    useEffect(() => {
-        if (scene !== 'scene2') return;
-        const timer = setInterval(() => {
-            setScene2Step(prev => (prev >= 6 ? 6 : prev + 1));
-        }, 600);
-        return () => clearInterval(timer);
-    }, [scene]);
+        const timeouts = textSteps.map(s => setTimeout(() => {
+            setStatusText(prev => [...prev, s.t]);
+            if (s.finale) setIsReady(true);
+        }, s.d));
 
-    // Transition Logic: Targeted Physical Redirects
-    useEffect(() => {
-        if (scene !== 'transition' || !transitionTarget) return;
-
-        const timings: Record<string, number[]> = {
-            initialize: [1500, 3000], // Establish text -> Redirect
-            decoder: [1000, 2000],     // Frag -> Redirect
-            status: [1200, 2500]       // Slide -> Redirect
+        return () => {
+            clearInterval(loadInterval);
+            timeouts.forEach(clearTimeout);
         };
+    }, [scene]);
 
-        const steps = timings[transitionTarget];
-        const t1 = setTimeout(() => setTransitionStep(1), steps[0]);
-        const t2 = setTimeout(() => onNavigate(transitionTarget), steps[1]);
+    // Scene 2/3: Home Mouse Interaction
+    useEffect(() => {
+        if (scene !== 'home') return;
+        const handleMouseMove = (e: MouseEvent) => {
+            if (fogRef.current) {
+                const x = (e.clientX / window.innerWidth - 0.5) * 20;
+                const y = (e.clientY / window.innerHeight - 0.5) * 20;
+                fogRef.current.style.transform = `translate(${x}px, ${y}px)`;
+            }
+        };
+        window.addEventListener('mousemove', handleMouseMove);
+        return () => window.removeEventListener('mousemove', handleMouseMove);
+    }, [scene]);
 
-        return () => { clearTimeout(t1); clearTimeout(t2); };
-    }, [scene, transitionTarget, onNavigate]);
+    const handleStart = () => {
+        setScene('transition');
+        setTimeout(() => {
+            onNavigate();
+        }, 2000);
+    };
 
-    if (scene === 'scene1') {
+    // LOADING RENDER
+    if (scene === 'loading') {
         return (
-            <div className="w-full h-full bg-black flex items-center justify-center relative overflow-hidden">
-                <div className="bg-film-grain mix-blend-overlay"></div>
-                {scene1Step >= 1 && <div className="scanlines opacity-50"></div>}
-                <div className={`relative transition-all duration-[4000ms] ${scene1Step >= 3 ? 'scale-100' : 'scale-50 opacity-0'}`}>
-                    <div className="w-[300px] h-[300px] md:w-[500px] h-[500px] rounded-full bg-[radial-gradient(circle,#8a0000_0%,transparent_70%)] opacity-60 animate-pulse"></div>
-                    <svg className="absolute inset-0 w-full h-full" viewBox="0 0 100 100">
-                        {scene1Step >= 3 && (
-                            <>
-                                <path d="M50 50 Q60 20 80 10" className="vein-crack animate-vein" />
-                                <path d="M50 50 Q30 80 10 90" className="vein-crack animate-vein" style={{ animationDelay: '1s' }} />
-                            </>
-                        )}
-                    </svg>
-                </div>
-                <div className="absolute inset-0 flex flex-col items-center justify-center text-center z-10 px-8">
-                    {scene1Step === 2 && <h1 className="text-4xl md:text-6xl font-serif text-glow-blood animate-text-warp uppercase tracking-[0.2em]">INTERDIMENSIONAL SIGNAL DETECTED</h1>}
-                    {scene1Step === 3 && <h2 className="text-2xl md:text-4xl font-mono text-red-950 font-black animate-pulse uppercase tracking-[0.5em]">STABILITY FAILING</h2>}
-                    {scene1Step >= 4 && (
-                        <div className="flex flex-col gap-8">
-                            <h1 className="text-6xl md:text-9xl font-serif text-white tracking-[0.3em] drop-shadow-[0_0_20px_red]">THE GATE</h1>
-                            {scene1Step >= 5 && <h2 className="text-4xl md:text-6xl font-serif text-red-600 tracking-[0.5em] animate-breathe-heavy">IS OPEN</h2>}
-                        </div>
+            <div className="w-full h-full bg-black text-term-green flex flex-col items-center justify-center p-8 font-mono">
+                <div className="crt-scanline"></div>
+                <div className="scanlines opacity-20"></div>
+
+                <div className="flex flex-col gap-12 w-full max-w-2xl">
+                    <h1 className="text-3xl md:text-5xl text-center tracking-widest animate-flicker uppercase">
+                        POWERING INTERDIMENSIONAL RELAY
+                    </h1>
+
+                    {/* Chunky Loader */}
+                    <div className="flex justify-center h-8">
+                        {[...Array(maxBlocks)].map((_, i) => (
+                            <div
+                                key={i}
+                                className={`w-6 h-8 mr-1 border border-term-green/30 ${i < loadStep ? 'bg-term-green shadow-[0_0_10px_rgba(0,255,65,0.5)]' : ''}`}
+                                style={{ opacity: i < loadStep ? (Math.random() > 0.05 ? 1 : 0.5) : 0.2 }}
+                            ></div>
+                        ))}
+                    </div>
+
+                    <div className="flex flex-col gap-2 text-xl opacity-80 h-32">
+                        {statusText.map((t, i) => (
+                            <div key={i} className="animate-diag">{t}</div>
+                        ))}
+                    </div>
+
+                    {isReady && (
+                        <button
+                            onClick={() => setScene('home')}
+                            className="mt-8 self-center animate-pulse border-2 border-term-green px-6 py-2 hover:bg-term-green hover:text-black transition-colors uppercase tracking-widest"
+                        >
+                            INITIALIZE INTERFACE
+                        </button>
                     )}
                 </div>
-                {scene1Step >= 6 && <div className="fixed inset-0 z-50 bg-noise mix-blend-color-dodge opacity-40 animate-violent-shake"></div>}
             </div>
         );
     }
 
-    if (scene === 'scene2') {
+    // HOME RENDER
+    if (scene === 'home') {
         return (
-            <div className="relative w-full h-full bg-black overflow-hidden flex flex-col items-center justify-center">
-                <div className="blood-drain-overlay blood-drain-active opacity-40"></div>
-                <div className="absolute inset-0 bg-fog opacity-30 pointer-events-none transform scale-110" ref={fogRef}></div>
-                <div className="bg-film-grain opacity-20"></div>
+            <div className="w-full h-full bg-black text-term-green flex flex-col relative overflow-hidden font-mono p-4 md:p-8">
+                <div className="crt-scanline"></div>
                 <div className="scanlines opacity-20"></div>
-                <div className="z-20 text-center mb-16 relative px-4">
-                    <h1 className={`text-6xl md:text-9xl font-serif text-glow-blood tracking-widest text-red-600 animate-heartbeat transition-all duration-1000 ${scene2Step >= 1 ? 'opacity-100' : 'opacity-0 translate-y-4'}`}>UPSIDE DOWN</h1>
-                    <h2 className={`text-3xl md:text-5xl font-serif text-red-800 tracking-widest transition-all duration-1000 delay-500 ${scene2Step >= 2 ? 'opacity-80' : 'opacity-0 translate-y-4'}`}>COMMUNICATOR</h2>
-                    <p className={`mt-8 text-xs md:text-sm text-red-900 font-mono tracking-[0.8em] uppercase transition-opacity duration-1000 delay-1000 ${scene2Step >= 3 ? 'opacity-50' : 'opacity-0'}`}>The Signal Must Get Through</p>
-                </div>
-                <div className="z-30 w-full max-w-2xl px-8 flex flex-col gap-6">
-                    {[
-                        { l: 'INITIALIZE SIGNAL', t: 'initialize' },
-                        { l: 'DECODER INTERFACE', t: 'decoder' },
-                        { l: 'SYSTEM STATUS', t: 'status' },
-                        { l: 'ARCHIVES', t: 'status' }
-                    ].map((item, i) => {
-                        const visible = scene2Step >= (4 + i);
-                        return (
+
+                {/* Title Header */}
+                <header className="z-10 border-4 border-term-green p-6 text-center relative">
+                    <h1 className="text-5xl md:text-7xl tracking-tighter font-black animate-flicker">
+                        UPSIDE DOWN COMMUNICATOR
+                    </h1>
+                    <p className="mt-2 text-lg tracking-[0.4em] opacity-60">NON-TEXT SIGNAL TRANSMISSION INTERFACE</p>
+                    <div className="absolute -bottom-1 left-4 bg-black px-2 text-xs">V.1983-RELAY</div>
+                </header>
+
+                <main className="flex-1 flex flex-col md:flex-row gap-8 py-8 items-center justify-center relative z-10 w-full max-w-7xl mx-auto">
+                    {/* Left Panel */}
+                    <div className="hidden md:flex flex-col gap-12 w-64 border-r border-term-green/30 p-4">
+                        <div className="flex flex-col gap-2">
+                            <div className="text-xs opacity-50 uppercase">Signal Integrity</div>
+                            <div className="text-xl font-bold">LOW</div>
+                            <div className="h-2 w-full bg-term-green/10 border border-term-green/30">
+                                <div className="h-full bg-term-green w-1/4 animate-pulse"></div>
+                            </div>
+                        </div>
+                        <div className="flex flex-col gap-2">
+                            <div className="text-xs opacity-50 uppercase">Interference</div>
+                            <div className="text-xl font-bold">ACTIVE</div>
+                            <div className="flex gap-1">
+                                {[1, 2, 3, 4, 5].map(i => (
+                                    <div key={i} className={`h-4 w-4 border border-term-green/30 ${i < 4 ? 'bg-term-green animate-pulse' : ''}`}></div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Center Core */}
+                    <div className="flex-1 flex flex-col items-center justify-center gap-16 px-4">
+                        <div className="relative group">
+                            <div className="absolute -inset-4 border border-term-green/20 animate-pulse-ring rounded-full"></div>
                             <button
-                                key={item.l}
-                                onClick={() => { setTransitionTarget(item.t as any); setScene('transition'); }}
-                                className={`w-full py-5 px-8 border border-red-950/30 text-red-800 font-mono text-xl tracking-[0.3em] transition-all duration-700 ${visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'} hover:border-red-600 hover:text-red-500 hover:shadow-[0_0_20px_rgba(255,0,0,0.3)] hover:bg-red-950/10 group relative overflow-hidden`}
+                                onClick={handleStart}
+                                className="chunky-button relative z-10"
                             >
-                                <div className="absolute inset-0 bg-noise opacity-0 group-hover:opacity-10 pointer-events-none"></div>
-                                <span className="relative z-10 block group-hover:animate-pulse">{item.l}</span>
+                                <span className="relative z-10">ENTER CORE SYSTEM</span>
                             </button>
-                        );
-                    })}
-                </div>
+                        </div>
+                        <div className="text-[10px] tracking-[1em] opacity-30 mt-8 animate-pulse">CAUTION: DIMENSIONAL DRIFT DETECTED</div>
+                    </div>
+
+                    {/* Right Panel */}
+                    <div className="hidden md:flex flex-col gap-12 w-64 border-l border-term-green/30 p-4 text-right">
+                        <div className="flex flex-col gap-2">
+                            <div className="text-xs opacity-50 uppercase">System Sanity</div>
+                            <div className="text-xl font-bold">78%</div>
+                            <div className="h-2 w-full bg-term-green/10 border border-term-green/30">
+                                <div className="h-full bg-term-green w-[78%] animate-bar"></div>
+                            </div>
+                        </div>
+                        <div className="flex flex-col gap-2">
+                            <div className="text-xs opacity-50 uppercase">Terminal Mode</div>
+                            <div className="text-xl font-bold">NORMAL</div>
+                            <div className="animate-flicker text-xs font-bold text-term-amber">SECURE_LINK_ENCRYPTED</div>
+                        </div>
+                    </div>
+                </main>
+
+                <footer className="z-10 border-t border-term-green/30 py-4 flex justify-between text-[10px] opacity-40 uppercase tracking-widest">
+                    <span>HAWKINS_NATIONAL_LAB // 1983</span>
+                    <span>SYS_TEMP: 104F // FAN_AUTO</span>
+                    <span>GATE_MONITOR: [STABLE]</span>
+                </footer>
             </div>
         );
     }
 
-    // TRANSITION SCENE
+    // TRANSITION RENDER
     return (
-        <div className={`w-full h-full bg-black flex items-center justify-center relative overflow-hidden transition-all duration-500 ${transitionStep === 1 ? 'brightness-0' : ''}`}>
-            <div className="bg-film-grain mix-blend-overlay"></div>
-            <div className="scanlines opacity-40"></div>
-
-            {transitionTarget === 'initialize' && (
-                <div className={`fixed inset-0 z-50 bg-noise mix-blend-multiply opacity-60 animate-static-inward`}>
-                    <div className="h-full w-full flex items-center justify-center">
-                        <h1 className="text-white font-serif text-3xl tracking-widest animate-pulse">ESTABLISHING SIGNAL PATH</h1>
-                    </div>
-                </div>
-            )}
-
-            {transitionTarget === 'decoder' && (
-                <div className="fixed inset-0 z-50 animate-violent-glitch bg-black/50 backdrop-blur-sm flex items-center justify-center">
-                    <h1 className="text-red-600 font-serif text-5xl tracking-[0.5em] animate-pulse">DECODER ACTIVE</h1>
-                </div>
-            )}
-
-            {transitionTarget === 'status' && (
-                <div className="fixed inset-0 z-50 animate-gravity-slide bg-red-950/20 flex flex-col items-center justify-center">
-                    <div className="mb-48 flex flex-col items-center gap-4">
-                        <div className="w-16 h-1 w-full bg-red-600 animate-blink-red"></div>
-                        <h1 className="text-white font-mono text-2xl tracking-[0.5em]">ACCESSING CORE SYSTEMS</h1>
-                        <div className="w-16 h-1 w-full bg-red-600 animate-blink-red"></div>
-                    </div>
-                </div>
-            )}
+        <div className="w-full h-full bg-black flex items-center justify-center animate-shake relative overflow-hidden">
+            <div className="fixed inset-0 bg-term-green mix-blend-difference z-50 animate-pulse opacity-20"></div>
+            <div className="fixed inset-0 bg-noise opacity-20 z-[60]"></div>
+            <div className="text-center z-[70] flex flex-col gap-4">
+                <h1 className="text-white text-5xl font-black italic tracking-tighter drop-shadow-[0_0_20px_red]">
+                    ENGAGING NON-STANDARD TRANSMISSION PROTOCOL
+                </h1>
+                <div className="h-1 w-full bg-term-amber animate-pulse"></div>
+            </div>
         </div>
     );
 };
